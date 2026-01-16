@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Recibo de Pagamento a Autônomo - RPA</title>
+<style>
+/* ESTILOS PARA TELA */
+body {
+    font-family: Arial, sans-serif;
+    margin: 10px;
+    font-size: 12px;
+    background: #f5f5f5;
+}
+.container {
+    width: 100%;
+    max-width: 210mm; /* Largura A4 */
+    margin: 0 auto;
+    background: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 15px;
+}
+.rpa {
+    border: 2px solid #000;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+h2 {
+    text-align: center;
+    font-size: 16px;
+    margin: 5px 0 10px 0;
+}
+h3 {
+    margin: 10px 0 6px 0;
+    font-size: 13px;
+}
+h4 {
+    font-size: 12px;
+    margin: 8px 0 4px 0;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+    table-layout: fixed;
+}
+table, th, td { border: 1px solid #000; }
+th, td {
+    padding: 4px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.assinatura {
+    margin-top: 15px;
+    font-size: 11px;
+}
+button {
+    margin: 5px 5px 5px 0;
+    padding: 8px 12px;
+    font-size: 11px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+button:hover {
+    background: #45a049;
+}
+input, select {
+    width: 100%;
+    padding: 6px;
+    margin-top: 3px;
+    font-size: 11px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+#mensagem {
+    color: green;
+    font-weight: bold;
+    margin: 10px 0;
+    font-size: 11px;
+    padding: 5px;
+    background: #e8f5e8;
+    border-radius: 3px;
+}
+.campos-anteriores {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px dashed #666;
+    background-color: #f9f9f9;
+    box-sizing: border-box;
+}
+.campos-anteriores.hidden { display: none; }
+.label-group {
+    margin-top: 8px;
+    flex: 1 1 48%;
+    margin-right: 2%;
+    box-sizing: border-box;
+    min-width: 0;
+}
+.label-group:nth-child(even) { margin-right: 0; }
+.label-group label {
+    display: block;
+    margin-bottom: 3px;
+    font-weight: bold;
+    font-size: 11px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.info-box {
+    margin: 10px 0;
+    padding: 8px;
+    background-color: #f0f8ff;
+    border: 1px solid #ccc;
+    font-size: 10px;
+    line-height: 1.3;
+    box-sizing: border-box;
+}
+.highlight {
+    background-color: #ffffcc;
+    padding: 2px;
+    font-weight: bold;
+}
+.reducao-info {
+    background-color: #e8f5e8;
+    border-left: 3px solid #4CAF50;
+    padding: 4px;
+    margin: 3px 0;
+    font-size: 10px;
+}
+.linha-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+}
+.rpa .linha-container .label-group,
+.servicos .linha-container .label-group {
+    flex: 0 0 49%;
+    margin-bottom: 10px;
+    min-width: 0;
+}
+.servicos {
+    margin: 15px 0;
+    padding: 12px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+    box-sizing: border-box;
+}
+.numero-rpa-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 12px;
+}
+.numero-rpa-container .label-group {
+    flex: 0 0 20%;
+    max-width: 150px;
+    min-width: 120px;
+}
+.full-width { flex: 0 0 100% !important; margin-right: 0 !important; }
+
+/* CORREÇÃO ESPECÍFICA PARA CAMPOS PERDIDOS À DIREITA */
+.rpa, .servicos, .campos-anteriores {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+/* Ajuste fino para inputs não ultrapassarem */
+input, select { max-width: 100% !important; }
+
+/* ESTILOS ESPECÍFICOS PARA IMPRESSÃO - PREENCHER PÁGINA TODA */
+@media print {
+    body, html {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        background: white !important;
+        overflow: hidden !important;
+        font-size: 11px !important;
+    }
+    .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 8mm !important;
+        box-shadow: none !important;
+        background: white !important;
+        box-sizing: border-box !important;
+    }
+    @page {
+        margin: 8mm !important;
+        margin-top: 10mm !important;
+        margin-bottom: 10mm !important;
+        size: A4 portrait !important;
+    }
+    .no-print,
+    input, select, button,
+    .campos-anteriores,
+    .opcoes-adicionais,
+    #mensagem,
+    .numero-rpa-container,
+    .servicos,
+    .rpa { display: none !important; }
+    #resultado {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    .recibo-container {
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    .cabecalho-recibo {
+        border: 2px solid #000 !important;
+        padding: 3mm !important;
+        margin-bottom: 3mm !important;
+        height: auto !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+    .cabecalho-recibo h2 {
+        font-size: 14px !important;
+        margin: 1mm 0 2mm 0 !important;
+        padding: 0 !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+    .tabela-principal {
+        font-size: 9px !important;
+        margin: 2mm 0 !important;
+        width: 100% !important;
+        table-layout: fixed !important;
+        box-sizing: border-box !important;
+    }
+    .tabela-principal th,
+    .tabela-principal td {
+        padding: 1.5mm !important;
+        line-height: 1.1 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        box-sizing: border-box !important;
+    }
+    .tabela-principal th:nth-child(1),
+    .tabela-principal td:nth-child(1) { width: 40% !important; }
+    .tabela-principal th:nth-child(2),
+    .tabela-principal td:nth-child(2) { width: 15% !important; text-align: center !important; }
+    .tabela-principal th:nth-child(3),
+    .tabela-principal td:nth-child(3) { width: 25% !important; text-align: center !important; }
+    .tabela-principal th:nth-child(4),
+    .tabela-principal td:nth-child(4) { width: 20% !important; text-align: right !important; }
+    .info-legal {
+        font-size: 8px !important;
+        padding: 2mm !important;
+        margin: 2mm 0 !important;
+        height: auto !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+    .area-assinatura {
+        position: relative !important;
+        margin-top: 5mm !important;
+        width: 100% !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+    }
+    .recibo-container,
+    .cabecalho-recibo,
+    .tabela-principal,
+    .info-legal,
+    .area-assinatura {
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
+    }
+    .espaco-flexivel {
+        flex: 1 !important;
+        min-height: auto !important;
+        box-sizing: border-box !important;
+    }
+    * {
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+    }
+}
+
+.controles {
+    background: #f0f0f0;
+    padding: 10px;
+    margin: 15px 0;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+input[type="radio"] {
+    width: auto;
+    margin-right: 5px;
+}
+
+#resultado {
+    background: white;
+    padding: 15px;
+    border: 1px solid #ddd;
+    margin-top: 20px;
+    display: none;
+    box-sizing: border-box;
+    width: 100%;
+}
+@media print {
+    #resultado {
+        display: block !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
+.campo-container {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+.campo-container .label-group {
+    width: 100%;
+    margin-right: 0;
+}
+
+.duas-colunas {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.duas-colunas .label-group {
+    flex: 1;
+    min-width: 0;
+}
+
+@media screen and (max-width: 900px) {
+    .container { padding: 10px; }
+    .duas-colunas { flex-direction: column; gap: 5px; }
+    .rpa .linha-container .label-group,
+    .servicos .linha-container .label-group { flex: 0 0 100%; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="rpa">
+        <h2>RECIBO DE PAGAMENTO A AUTÔNOMO - RPA</h2>
+        <div class="numero-rpa-container">
+            <div class="label-group">
+                <label>Nº do RPA:</label>
+                <input type="text" id="numeroRPA" value="0001">
+            </div>
+        </div>
+        
+        <div class="duas-colunas">
+            <div class="label-group">
+                <label>Nome do Prestador:</label>
+                <input type="text" id="nome" placeholder="Digite o nome completo">
+            </div>
+            <div class="label-group">
+                <label>CPF:</label>
+                <input type="text" id="cpf" placeholder="000.000.000-00">
+            </div>
+        </div>
+        
+        <div class="duas-colunas">
+            <div class="label-group">
+                <label>Tomador do Serviço:</label>
+                <input type="text" id="tomador" placeholder="Nome da empresa tomadora">
+            </div>
+            <div class="label-group">
+                <label>CNPJ do Tomador:</label>
+                <input type="text" id="cnpjTomador" placeholder="00.000.000/0000-00">
+            </div>
+        </div>
+        
+        <div class="campo-container">
+            <div class="label-group full-width">
+                <label>Local da Prestação:</label>
+                <input type="text" id="local" placeholder="Endereço completo onde o serviço foi prestado">
+            </div>
+        </div>
+    </div>
+    
+    <div class="servicos">
+        <h3>RECEBI DA EMPRESA ACIMA IDENTIFICADA, PELA PRESTAÇÃO DOS SERVIÇOS</h3>
+        <div class="duas-colunas">
+            <div class="label-group">
+                <label>Tipo de Serviço:</label>
+                <input type="text" id="servico" placeholder="Descrição do serviço prestado">
+            </div>
+            <div class="label-group">
+                <label>Valor Bruto (R$):</label>
+                <input type="text" id="valor" placeholder="0,00" 
+                       onblur="formatarInputMoeda(this)" 
+                       onfocus="this.value=this.value.replace(/[^\d,.-]/g,'')">
+            </div>
+        </div>
+        <div class="duas-colunas">
+            <div class="label-group">
+                <label>Alíquota de ISS (%):</label>
+                <input type="number" id="aliquotaISS" step="0.01" value="5">
+            </div>
+            <div class="label-group">
+                <label>ISS Retido?</label>
+                <select id="issRetido">
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="opcoes-adicionais">
+        <div class="campo-container">
+            <label>Possui RPA anteriores no mesmo mês?</label>
+            <div style="display: flex; gap: 15px; margin-top: 8px;">
+                <label style="display: flex; align-items: center; font-weight: normal;">
+                    <input type="radio" name="possuiRPA" value="sim" onchange="toggleCamposAnteriores()"> Sim
+                </label>
+                <label style="display: flex; align-items: center; font-weight: normal;">
+                    <input type="radio" name="possuiRPA" value="nao" onchange="toggleCamposAnteriores()" checked> Não
+                </label>
+            </div>
+        </div>
+        
+        <div id="camposAnteriores" class="campos-anteriores hidden">
+            <div class="duas-colunas">
+                <div class="label-group">
+                    <label for="baseAnterior">Valor da base acumulada anterior (R$):</label>
+                    <input type="text" id="baseAnterior" placeholder="0,00"
+                           onblur="formatarInputMoeda(this)" 
+                           onfocus="this.value=this.value.replace(/[^\d,.-]/g,'')">
+                </div>
+                <div class="label-group">
+                    <label for="inssAnterior">Valor do INSS acumulado anterior (R$):</label>
+                    <input type="text" id="inssAnterior" placeholder="0,00"
+                           onblur="formatarInputMoeda(this)" 
+                           onfocus="this.value=this.value.replace(/[^\d,.-]/g,'')">
+                </div>
+                <div class="label-group">
+                    <label for="irrfAnterior">Valor do IRRF acumulado anterior (R$):</label>
+                    <input type="text" id="irrfAnterior" placeholder="0,00"
+                           onblur="formatarInputMoeda(this)" 
+                           onfocus="this.value=this.value.replace(/[^\d,.-]/g,'')">
+                </div>
+            </div>
+        </div>
+        
+        <div class="controles no-print">
+            <button onclick="gerarRecibo()">Gerar Recibo</button>
+            <button onclick="limparCampos()">Limpar Campos</button>
+            <button onclick="imprimirPDF()">Imprimir / Salvar PDF</button>
+        </div>
+        
+        <div id="mensagem" class="no-print"></div>
+    </div>
+    
+    <div id="resultado"></div>
+</div>
+
+<script>
+// Funções de formatação monetária
+function formatarMoedaBrasileira(valor) {
+    if (valor === '' || valor === null || valor === undefined) return '';
+    
+    let numero = typeof valor === 'string' ? 
+                 parseFloat(valor.replace(/\./g, '').replace(',', '.')) : 
+                 Number(valor);
+    
+    if (isNaN(numero)) return '';
+    
+    return numero.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function formatarInputMoeda(elemento) {
+    let valor = elemento.value.replace(/[^\d,.-]/g, '');
+    
+    if (valor.includes(',') && valor.includes('.')) {
+        valor = valor.replace(/\./g, '').replace(',', '.');
+    } else if (valor.includes(',')) {
+        valor = valor.replace(',', '.');
+    }
+    
+    let numero = parseFloat(valor);
+    
+    if (!isNaN(numero)) {
+        elemento.value = numero.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    } else {
+        elemento.value = '';
+    }
+}
+
+function converterParaNumero(valorFormatado) {
+    if (!valorFormatado) return 0;
+    
+    let numero = parseFloat(
+        valorFormatado.replace(/\./g, '')
+                      .replace(',', '.')
+                      .replace(/[^\d.-]/g, '')
+    );
+    
+    return isNaN(numero) ? 0 : numero;
+}
+
+// Funções auxiliares
+function toggleCamposAnteriores() {
+    const possuiRPA = document.querySelector('input[name="possuiRPA"]:checked');
+    const camposAnteriores = document.getElementById("camposAnteriores");
+    if (possuiRPA && possuiRPA.value === "sim") {
+        camposAnteriores.classList.remove("hidden");
+    } else {
+        camposAnteriores.classList.add("hidden");
+        document.getElementById("baseAnterior").value = "0,00";
+        document.getElementById("inssAnterior").value = "0,00";
+        document.getElementById("irrfAnterior").value = "0,00";
+    }
+}
+
+function getPossuiRPA() {
+    const possuiRPA = document.querySelector('input[name="possuiRPA"]:checked');
+    return possuiRPA ? possuiRPA.value : "nao";
+}
+
+function limparCampos() {
+    document.getElementById("numeroRPA").value = "0001";
+    document.getElementById("nome").value = "";
+    document.getElementById("cpf").value = "";
+    document.getElementById("tomador").value = "";
+    document.getElementById("cnpjTomador").value = "";
+    document.getElementById("local").value = "";
+    document.getElementById("servico").value = "";
+    document.getElementById("valor").value = "";
+    document.getElementById("aliquotaISS").value = "5";
+    document.getElementById("issRetido").value = "sim";
+    
+    const radioNao = document.querySelector('input[name="possuiRPA"][value="nao"]');
+    if (radioNao) radioNao.checked = true;
+    
+    document.getElementById("baseAnterior").value = "0,00";
+    document.getElementById("inssAnterior").value = "0,00";
+    document.getElementById("irrfAnterior").value = "0,00";
+    document.getElementById("camposAnteriores").classList.add("hidden");
+    
+    document.getElementById("resultado").innerHTML = "";
+    document.getElementById("resultado").style.display = "none";
+    document.getElementById("mensagem").innerText = "Campos limpos com sucesso!";
+    setTimeout(() => { document.getElementById("mensagem").innerText = ""; }, 2000);
+}
+
+function imprimirPDF() {
+    if (document.getElementById("resultado").innerHTML.trim() === "") {
+        alert("Primeiro gere o recibo clicando em 'Gerar Recibo'");
+        return;
+    }
+    
+    document.getElementById("resultado").style.display = "block";
+    
+    setTimeout(() => {
+        window.print();
+        setTimeout(() => {
+            document.getElementById("resultado").style.display = "none";
+        }, 100);
+    }, 100);
+}
+
+// Formatar CPF
+function formatarCPF(cpf) {
+    cpf = cpf.replace(/\D/g, '');
+    if (cpf.length === 11) {
+        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+    }
+    return cpf;
+}
+
+// Formatar CNPJ
+function formatarCNPJ(cnpj) {
+    cnpj = cnpj.replace(/\D/g, '');
+    if (cnpj.length === 14) {
+        return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+    }
+    return cnpj;
+}
+
+// Faixas INSS 2026
+const inssFaixas = [
+    { limite: 8537.55, aliquota: 0.11, descricao: "11% até R$ 8.537,55" }
+];
+
+// Tabela IR 2026
+const faixasIR = [
+    { limite: 2428.80, aliquota: 0.0, descricao: "0% (Isento)" },
+    { limite: 2826.65, aliquota: 0.075, descricao: "7,5%" },
+    { limite: 3751.05, aliquota: 0.15, descricao: "15%" },
+    { limite: 4664.68, aliquota: 0.225, descricao: "22,5%" },
+    { limite: Infinity, aliquota: 0.275, descricao: "27,5%" }
+];
+
+// Parâmetros para redução/isenção
+const PARAMETROS_IR = {
+    LIMITE_ISENCAO: 5000.00,
+    LIMITE_REDUCAO: 7350.00,
+    REDUCAO_BASE: 978.62,
+    REDUCAO_COEFICIENTE: 0.133145,
+    DESCRICAO_ISENCAO: "Isenção IRRF (Lei 2026 - Base ≤ R$ 5.000,00)",
+    DESCRICAO_REDUCAO: "Redução IRRF (Lei 2026 - Base R$ 5.000,01 a R$ 7.350,00)"
+};
+
+// Função para calcular INSS considerando teto acumulado
+function calcularINSS(salario, inssAnterior = 0) {
+    const tetoINSS = inssFaixas[inssFaixas.length - 1].limite;
+    
+    if (inssAnterior >= tetoINSS) {
+        return {
+            valor: 0,
+            aliquotaEfetiva: 0,
+            descricao: "Teto do INSS já atingido",
+            tetoAtingido: true
+        };
+    }
+    
+    const salarioContribuivel = Math.min(salario, tetoINSS - inssAnterior);
+    
+    if (salarioContribuivel <= 0) {
+        return {
+            valor: 0,
+            aliquotaEfetiva: 0,
+            descricao: "Teto do INSS já atingido",
+            tetoAtingido: true
+        };
+    }
+    
+    let restante = salarioContribuivel, contribuicao = 0, anterior = 0;
+    let aliquotaEfetiva = 0;
+    
+    for (let faixa of inssFaixas) {
+        if (restante > faixa.limite) {
+            contribuicao += (faixa.limite - anterior) * faixa.aliquota;
+            anterior = faixa.limite;
+        } else {
+            contribuicao += (restante - anterior) * faixa.aliquota;
+            if (salarioContribuivel > 0) {
+                aliquotaEfetiva = contribuicao / salarioContribuivel;
+            }
+            break;
+        }
+    }
+    
+    const tetoAtingido = (inssAnterior + contribuicao) >= tetoINSS;
+    
+    return {
+        valor: contribuicao,
+        aliquotaEfetiva: aliquotaEfetiva,
+        descricao: tetoAtingido ? "Cálculo parcial (teto atingido)" : "Cálculo normal",
+        tetoAtingido: tetoAtingido
+    };
+}
+
+// Função para calcular IRRF
+function calcularIRRF(base, possuiReducao = true) {
+    let impostoBruto = 0;
+    let anterior = 0;
+    let faixaAplicada = null;
+    let reducaoAplicada = 0;
+    let isencaoAplicada = false;
+    let tipoCalculo = "Normal";
+    
+    for (let faixa of faixasIR) {
+        if (base > faixa.limite) {
+            impostoBruto += (faixa.limite - anterior) * faixa.aliquota;
+            anterior = faixa.limite;
+        } else {
+            if (base > 0) {
+                impostoBruto += (base - anterior) * faixa.aliquota;
+                faixaAplicada = faixa;
+            }
+            break;
+        }
+    }
+    
+    let impostoFinal = impostoBruto;
+    
+    if (possuiReducao) {
+        if (base <= PARAMETROS_IR.LIMITE_ISENCAO) {
+            impostoFinal = 0;
+            isencaoAplicada = true;
+            tipoCalculo = "Isenção";
+        } else if (base <= PARAMETROS_IR.LIMITE_REDUCAO) {
+            reducaoAplicada = PARAMETROS_IR.REDUCAO_BASE - (PARAMETROS_IR.REDUCAO_COEFICIENTE * base);
+            impostoFinal = impostoBruto - reducaoAplicada;
+            if (impostoFinal < 0) impostoFinal = 0;
+            tipoCalculo = "Redução";
+        } else {
+            tipoCalculo = "Normal";
+        }
+    }
+    
+    return {
+        valor: impostoFinal,
+        impostoBruto: impostoBruto,
+        faixaAplicada: faixaAplicada,
+        reducaoAplicada: reducaoAplicada,
+        isencaoAplicada: isencaoAplicada,
+        tipoCalculo: tipoCalculo,
+        baseCalculo: base
+    };
+}
+
+// FUNÇÃO PRINCIPAL - Gerar recibo
+function gerarRecibo() {
+    let numeroRPA = document.getElementById("numeroRPA").value;
+    let nome = document.getElementById("nome").value;
+    let cpf = document.getElementById("cpf").value;
+    let tomador = document.getElementById("tomador").value;
+    let cnpjTomador = document.getElementById("cnpjTomador").value;
+    let local = document.getElementById("local").value;
+    let servico = document.getElementById("servico").value;
+    
+    // Usar a função converterParaNumero para obter valores corretos
+    let salario = converterParaNumero(document.getElementById("valor").value);
+    let aliquotaISS = parseFloat(document.getElementById("aliquotaISS").value) / 100;
+    let issRetido = document.getElementById("issRetido").value;
+    let possuiAnteriores = getPossuiRPA();
+    
+    // Obter valores acumulados anteriores
+    let baseAnterior = possuiAnteriores === "sim" ? converterParaNumero(document.getElementById("baseAnterior").value) : 0;
+    let inssAnterior = possuiAnteriores === "sim" ? converterParaNumero(document.getElementById("inssAnterior").value) : 0;
+    let irrfAnterior = possuiAnteriores === "sim" ? converterParaNumero(document.getElementById("irrfAnterior").value) : 0;
+    
+    if (isNaN(salario) || salario === 0) {
+        alert("Digite o valor bruto!");
+        return;
+    }
+    
+    if (!nome || !cpf || !tomador || !cnpjTomador || !local || !servico) {
+        alert("Preencha todos os campos obrigatórios!");
+        return;
+    }
+    
+    // Cálculos
+    let inssResultado = calcularINSS(salario, inssAnterior);
+    let inss = inssResultado.valor;
+    let base = salario - inss;
+    let irrfResultado = calcularIRRF(base, true);
+    let impostoFinal = irrfResultado.valor;
+    
+    // Acumulados para exibição
+    let baseAcumulada = baseAnterior + base;
+    let inssAcumulado = inssAnterior + inss;
+    let irrfAcumulado = irrfAnterior + impostoFinal;
+    
+    let iss = issRetido === "sim" ? salario * aliquotaISS : 0;
+    let liquido = salario - inss - impostoFinal - iss;
+    
+    // Formatar CPF e CNPJ
+    let cpfFormatado = formatarCPF(cpf);
+    let cnpjFormatado = formatarCNPJ(cnpjTomador);
+    
+    // Determinar descrições
+    let descricaoINSS = inssResultado.tetoAtingido ? "TETO ATINGIDO" : "11%";
+    let descricaoIRRF = "";
+    let statusIRRF = "";
+    
+    if (irrfResultado.isencaoAplicada) {
+        descricaoIRRF = "ISENTO (Lei 2026)";
+        statusIRRF = "ISENTO";
+    } else if (irrfResultado.tipoCalculo === "Redução") {
+        descricaoIRRF = "REDUÇÃO (Lei 2026)";
+        statusIRRF = "REDUÇÃO APLICADA";
+    } else if (irrfResultado.faixaAplicada) {
+        descricaoIRRF = `Faixa ${irrfResultado.faixaAplicada.descricao}`;
+        statusIRRF = "TABELA NORMAL";
+    }
+    
+    // HTML do recibo com formatação monetária brasileira
+    let htmlRecibo = `
+    <div class="recibo-container">
+        <div class="cabecalho-recibo" style="margin: 0 0 4mm 0; padding: 3mm;">
+            <h2 style="margin: 0 0 3mm 0; padding: 0; font-size: 14px;">RECIBO DE PAGAMENTO A AUTÔNOMO - RPA Nº ${numeroRPA}</h2>
+            <table style="width:100%; font-size:10px; border:none; margin: 0; padding: 0;">
+                <tr>
+                    <td style="border:none; padding:1mm 2mm; width:50%; vertical-align:top;">
+                        <strong>PRESTADOR:</strong><br>${nome}<br><strong>CPF:</strong> ${cpfFormatado}
+                    </td>
+                    <td style="border:none; padding:1mm 2mm; width:50%; vertical-align:top;">
+                        <strong>TOMADOR:</strong><br>${tomador}<br><strong>CNPJ:</strong> ${cnpjFormatado}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="border:none; padding:1mm 2mm;">
+                        <strong>LOCAL DA PRESTAÇÃO:</strong> ${local}<br>
+                        <strong>SERVIÇO PRESTADO:</strong> ${servico}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="margin: 2mm 0 3mm 0;">
+            <h3 style="text-align:center; margin:1mm 0 2mm 0; font-size: 12px;">DETALHAMENTO DO PAGAMENTO</h3>
+            <table class="tabela-principal" style="width: 100%; table-layout: fixed;">
+                <thead>
+                    <tr style="background:#f0f0f0;">
+                        <th style="width:40%; padding: 1.5mm;">DESCRIÇÃO</th>
+                        <th style="width:15%; padding: 1.5mm; text-align:center;">BASE (R$)</th>
+                        <th style="width:25%; padding: 1.5mm; text-align:center;">ALÍQUOTA/STATUS</th>
+                        <th style="width:20%; padding: 1.5mm; text-align:center;">VALOR (R$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 1.5mm;"><strong>VALOR BRUTO DO SERVIÇO</strong></td>
+                        <td style="padding: 1.5mm; text-align:right;">${formatarMoedaBrasileira(salario)}</td>
+                        <td style="padding: 1.5mm; text-align:center;">-</td>
+                        <td style="padding: 1.5mm; text-align:right;"><strong>${formatarMoedaBrasileira(salario)}</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1.5mm;">INSS (Contribuição Previdenciária)</td>
+                        <td style="padding: 1.5mm; text-align:right;">${inssResultado.tetoAtingido ? '0,00' : formatarMoedaBrasileira(salario)}</td>
+                        <td style="padding: 1.5mm; text-align:center; font-size: ${inssResultado.tetoAtingido ? '9px' : '10px'};">
+                            ${descricaoINSS}
+                        </td>
+                        <td style="padding: 1.5mm; text-align:right;">${formatarMoedaBrasileira(inss)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1.5mm;">IRRF (Imposto de Renda Retido na Fonte)</td>
+                        <td style="padding: 1.5mm; text-align:right;">${formatarMoedaBrasileira(base)}</td>
+                        <td style="padding: 1.5mm; text-align:center; font-size: 9px;">${descricaoIRRF}</td>
+                        <td style="padding: 1.5mm; text-align:right;">${formatarMoedaBrasileira(impostoFinal)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1.5mm;">ISS ${issRetido === 'sim' ? '(Retido na Fonte)' : '(Não Retido)'}</td>
+                        <td style="padding: 1.5mm; text-align:right;">${formatarMoedaBrasileira(salario)}</td>
+                        <td style="padding: 1.5mm; text-align:center;">${(aliquotaISS * 100).toFixed(2).replace('.', ',')}%</td>
+                        <td style="padding: 1.5mm; text-align:right;">${formatarMoedaBrasileira(iss)}</td>
+                    </tr>
+                    <tr style="background:#e8f5e8; font-weight:bold;">
+                        <td colspan="3" style="text-align:right; padding:2mm 1.5mm;">VALOR LÍQUIDO A RECEBER:</td>
+                        <td style="text-align:right; padding:2mm 1.5mm; font-size:11px;">R$ ${formatarMoedaBrasileira(liquido)}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        ${possuiAnteriores === "sim" ? `
+        <div style="border:1px dashed #666; padding:2mm; margin:2mm 0; background:#f9f9f9; width: 100%; box-sizing: border-box;">
+            <h4 style="margin:0 0 1mm 0; text-align:center; font-size: 10px;">INFORMAÇÕES ACUMULADAS COM RPA(S) ANTERIOR(ES)</h4>
+            <table style="width:100%; font-size:9px; border:none;">
+                <tr>
+                    <td style="border:none; padding:1mm; width:33%;">
+                        <strong>Base de Cálculo Acumulada:</strong><br>
+                        Anterior: R$ ${formatarMoedaBrasileira(baseAnterior)}<br>
+                        Atual: R$ ${formatarMoedaBrasileira(base)}<br>
+                        <strong>Total: R$ ${formatarMoedaBrasileira(baseAcumulada)}</strong>
+                    </td>
+                    <td style="border:none; padding:1mm; width:33%;">
+                        <strong>INSS Acumulado:</strong><br>
+                        Anterior: R$ ${formatarMoedaBrasileira(inssAnterior)}<br>
+                        Atual: R$ ${formatarMoedaBrasileira(inss)}<br>
+                        <strong>Total: R$ ${formatarMoedaBrasileira(inssAcumulado)}</strong>
+                    </td>
+                    <td style="border:none; padding:1mm; width:33%;">
+                        <strong>IRRF Acumulado:</strong><br>
+                        Anterior: R$ ${formatarMoedaBrasileira(irrfAnterior)}<br>
+                        Atual: R$ ${formatarMoedaBrasileira(impostoFinal)}<br>
+                        <strong>Total: R$ ${formatarMoedaBrasileira(irrfAcumulado)}</strong>
+                    </td>
+                </tr>
+            </table>
+            ${inssResultado.tetoAtingido ? 
+                '<div style="background:#ffebee; padding:1mm; margin-top:1mm; border-radius:2px; font-size:8px; text-align:center; color:#c62828;">⚠️ TETO DO INSS ATINGIDO - Não há mais contribuição neste mês</div>' 
+                : ''}
+        </div>` : ''}
+        
+        <div class="info-legal" style="width: 100%; box-sizing: border-box; margin: 3mm 0; padding: 2mm;">
+            <div style="display:flex; flex-wrap:wrap; gap:2mm; width: 100%;">
+                <div style="flex:1; min-width:45%; box-sizing: border-box;">
+                    <strong style="font-size:9px;">INFORMAÇÕES DA LEGISLAÇÃO 2026</strong><br>
+                    <div style="font-size:8px; line-height:1.2;">
+                        • <strong>INSS:</strong> 11% sobre valor bruto (teto: R$ 8.537,55)<br>
+                        • <strong>IRRF Isento:</strong> Base ≤ R$ 5.000,00<br>
+                        • <strong>IRRF Redução:</strong> Base entre R$ 5.000,01 e R$ 7.350,00<br>
+                        • <strong>Fórmula Redução:</strong> R$ 978,62 - (0,133145 × Base)
+                    </div>
+                </div>
+                <div style="flex:1; min-width:45%; box-sizing: border-box;">
+                    <strong style="font-size:9px;">STATUS ATUAL DO CÁLCULO</strong><br>
+                    <div style="font-size:8px; line-height:1.2;">
+                        • <strong>Base de Cálculo IRRF:</strong> R$ ${formatarMoedaBrasileira(base)}<br>
+                        • <strong>Status IRRF:</strong> ${statusIRRF}<br>
+                        • <strong>Alíquota Efetiva INSS:</strong> ${(inssResultado.aliquotaEfetiva * 100).toFixed(2).replace('.', ',')}%<br>
+                        • <strong>ISS Retido:</strong> ${issRetido === 'sim' ? 'SIM' : 'NÃO'}<br>
+                        • <strong>Status INSS:</strong> ${inssResultado.tetoAtingido ? 'TETO ATINGIDO' : 'NORMAL'}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="area-assinatura" style="width: 100%; box-sizing: border-box; margin-top: 5mm;">
+            <div style="text-align:center; margin:3mm 0 2mm 0;">
+                <strong style="font-size: 10px;">DECLARO TER RECEBIDO O VALOR ACIMA E QUE O SERVIÇO FORA PRESTADO CONFORME ACORDADO</strong>
+            </div>
+            <div style="margin:8mm 0 4mm 0; text-align:center;">
+                <div style="border-top:1px solid #000; width:70%; margin:0 auto; padding-top:10mm;">Assinatura do Prestador</div>
+            </div>
+            <div style="text-align:center; font-size:9px; margin-top:2mm;">
+                <div>Data: ${new Date().toLocaleDateString('pt-BR')}</div>
+                <div style="margin-top:2mm; color:#666; font-size:8px;">
+                    Recibo gerado eletronicamente - Documento válido para fins fiscais<br>
+                    copyright aqmeira
+                </div>
+            </div>
+        </div>
+    </div>`;
+    
+    document.getElementById("resultado").innerHTML = htmlRecibo;
+    document.getElementById("resultado").style.display = "block";
+    document.getElementById("mensagem").innerText = "Recibo gerado! Clique em 'Imprimir/Salvar PDF' para gerar o documento.";
+    setTimeout(() => { document.getElementById("mensagem").innerText = ""; }, 3000);
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', function() {
+    const radioNao = document.querySelector('input[name="possuiRPA"][value="nao"]');
+    if (radioNao) radioNao.checked = true;
+    
+    // Inicializar campos com formatação
+    setTimeout(() => {
+        const camposValor = ['valor', 'baseAnterior', 'inssAnterior', 'irrfAnterior'];
+        camposValor.forEach(id => {
+            const campo = document.getElementById(id);
+            if (campo && campo.value) {
+                formatarInputMoeda(campo);
+            }
+        });
+    }, 100);
+});
+</script>
+</body>
+</html>
